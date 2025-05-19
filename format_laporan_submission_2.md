@@ -63,47 +63,92 @@ Dengan menggunakan pendekatan berbasis konten, platform game dapat meningkatkan 
 
 Model kali ini kita ambil dari [Kaggle](https://www.kaggle.com/datasets/trolukovich/steam-games-complete-dataset/) milik trolukovich yang dia ambil dari [Steam](https://store.steampowered.com) dengan cara web scraping. Dataset ini menyediakan data lengkap dari 40 ribu lebih game mulai dari `url`, `genre`, `release_date` dll. Namun kita hanya menggunakan 2 kolom yaitu `name` dan `genre`. Dataset ini terakhir di update 6 tahun lalu.
 
-Variabel-variabel yang kita gunakan untuk proyek pada dataset ini adalah sebagai berikut:
+Variabel-variabel yang ada pada dataset ini adalah sebagai berikut:
 
+- url : Merupakan kolom yang berisi alamat dari game tersebut.
+- types : Merupakan kolom yang berisi keterangan format aplikasi game.
 - name : Merupakan kolom yang berisi nama-nama atau judul dari game.
+- desc_snippet : Merupakan kolom yang berisi deskripsi game.
+- recent_reviews : Merupakan kolom yang berisi review terbaru game.
+- all_reviews : Merupakan kolom yang berisi seluruh review game.
+- release_date : Merupakan kolom yang berisi tanggal rilis game.
+- developer : Merupakan kolom yang berisi keterangan nama devepoler yang mengembangkan.
+- publisher : Merupakan kolom yang berisi keterangan nama publisher yang mem-publish.
+- popular_tags : Merupakan kolom yang berisi tag yang digunakan game.
+- game_details : Merupakan kolom yang berisi keterangan detail game.
+- languages : Merupakan kolom yang berisi bahasa yang tersedia dalam game.
+- achievements : Merupakan kolom yang berisi pencapaian game.
 - genre : Merupakan kolom yang berisi genre-genre dari game.
+- game_description : Merupakan kolom yang berisi deskripsi tentang pengembangan.
+- mature_content : Merupakan kolom yang berisi siapa yang dibolehkan memainkan game (usia).
+- minimum_requirements : Merupakan kolom yang berisi spesifikasi minimal device untuk menjalankan game.
+- recommended_requirements : Merupakan kolom yang berisi spesifikasi device yang direkomendasikan untuk menjalankan game.
+- original_price : Merupakan kolom yang berisi harga asli game.
+- discount_price : Merupakan kolom yang berisi harga game setelah diskon.
+
 
 ### Cek banyak data
 
-![info banyak data](img/info1.png)
-Dari gambar diatas kita bisa tahu bahwa dataset ini memiliki data 40817 judul game pada kolom `name` dan 40395 genre pada kolom `genre`
+![info](img/info2.png)
+Dari gambar tersebut kita tahu bahwa dataset ini memiliki 20 kolom dengan 40833 baris. Semua kolom memiliki tipe data object kecuali achievements.
+
+### Cek nilai kosong
+
+![missing](img/missing_value.png)
+Dari gambar tersebut kita tahu bahwa data yang kita gunakan tidak bersih dari missing value, kolom paling bersih adalah kolom `url` yaitu 0 dan yang paling banyak kosongnya adalah kolom `mature_content` yaitu 37936.
 
 ### Cek nilai unik
 
-![nama game unik](img/game_unique1.png)
-Dari 40817 judul yang tersedia, hanya 40750 data yang unik atau berarti 67 data adalah duplikat.
-![genre](img/genre_name.png)
+![name unik](img/game_unique1.png)
+Dataset ini memilki 40750 game berbeda.
+![genre unik](img/genre_name.png)
 ![jumlah genre](img/genre_count.png)
-Dari gambar diatas kita bisa tahu bahwa ada 1769 kombinasi genre pada kolom `genre`.
-
-### Cek nilai null
-
-![null](img/null.png)
-Dataset ini memiliki 16 nilai null pada kolom `name` dan 438 nilai pada kolom `genre`.
-
+Dataset ini memiliki 1769 kombinasi genre game yang berbeda.
 ### Visualisasi sebaran genre
 
 ![sebaran genre](img/genre_visual.png)
-Untuk mempermudah, kita bisa lihat gambar diatas genre seperti apa yang banyak di pakai untuk game-game yang tersedia.
+Untuk mempermudah melihat genre distribusi genre, kita menggunakan visualisasi dari `wordcloud`.
 
 ## Data Preparation
 
 Pada bagian ini kita akan melakukan persiapan pada data agar bisa diproses model dengan optimal.
 
+### Mengambil kolom yang sesuai
+Disini kita akan mengambil kolom yang sesuai dengan tujuan kita membuat model ML, yaitu membuat rekomendasi game berdasarkan genre game yang dipilih sebelumnya.
+
+![column](img/column.png)
+Sekarang dataset hanya punya 2 kolom yaitu `name` dan `genre` dengan baris tetap yaitu 40833 baris
+
 ### Cleaning data
 
-![no null](img/no_null.png)
-Proses pertama yang kita lakukan adalah membersihkan null pada kolom `name` dan `genre` agar tidak mengganggu model. Alasan dihapus null ini juga karena jumlahnya yang sangat sedikit sehingga tidak banyak menghilangkan informasi. Setelah itu kita hapus duplikasi pada kolom `name` agar tidak terjadi kebingungan saat merekomendasikan.
+![column clean](img/column_now.png)
+Proses selanjutnya yang kita lakukan adalah membersihkan nilai kosong pada kolom `name` dan `genre` agar tidak mengganggu model. Alasan dihapus kosong ini juga karena jumlahnya yang sangat sedikit sehingga tidak banyak menghilangkan informasi. Setelah itu kita hapus duplikasi pada kolom `name` agar tidak terjadi kebingungan karena perbedaan genre dari 2 nama yang sama saat merekomendasikan.
 
+### Normalisasi Genre
+
+![genre normalisasi](img/normalisasi.png)
+Selanjutnya adalah,
+  - Mengganti pemisah koma (`,`) dengan pipe (`|`) untuk keterbacaan
+  - Menghapus spasi tidak perlu untuk kejelasan bagi model
 ### Sampling data
 
-`games_chosen_data = data_cleaned.sample(10000, random_state=42)`
-Kita hanya mengambil 10000 data untuk menghemat resource. Terlebih 10000 data untuk model rekomendasi yang tidak terlalu kompleks seperti projek ini sudah sangat cukup.
+![sampled data](img/sampled.png)
+Lalu kita ambil 10000 data untuk menghemat resource. Terlebih 10000 data untuk model rekomendasi yang tidak terlalu kompleks seperti projek ini sudah sangat cukup.
+
+Sehingga dataset kita kini memiliki 10000 baris dan 2 kolom.
+
+### Ekstraksi fitur dengan CountVectorizer
+
+Selanjutnya adalah kita ubah data genre menjadi vector numerik untuk pemprosesan model.
+![vectorized](img/vectorized.png)
+
+Setelahnya kita lakukan proses mapping game-to-index yaitu membuat pemetaan antara nama game dan index-nya di DataFrame `games_data` agar mudah dan cepat menemukan indeks baris (`row index`) dari game tertentu berdasarkan namanya, saat membuat sistem rekomendasi berbasis kemiripan (`similarity`).
+
+### Validasi data
+
+![genre unik](img/unik_genre.png)
+Setelah proses-proses diatas, kini dataset punya 33 genre unik tersendiri dengan genre terbanyak dipakai ditampilkan dalam grafik berikut,
+![top genre](img/top_genre.png)
 
 ## Modeling
    🎮 Tujuan Modeling
@@ -115,51 +160,96 @@ Setiap model akan menghasilkan output berupa Top-N Recommendation, yaitu daftar 
    🔹 Tujuan:
       Merekomendasikan game yang memiliki genre mirip dengan game yang dipilih pengguna.
 
-   🔹 Mekanisme:
-      1. Preprocessing Genre:
-      - Genre game dari kolom `genre` dipisahkan menggunakan tanda pemisah `|`.
-      - Contohnya: `'Action|Adventure|RPG'`.
-      2. Ekstraksi Fitur dengan `CountVectorizer`:
-      - Digunakan `CountVectorizer` dari `sklearn` untuk mengubah genre menjadi representasi numerik (bag-of-words).
-      - Tokenisasi dilakukan dengan `split('|')` agar setiap kombinasi genre diperlakukan sebagai fitur individual.
-      3. Perhitungan Kemiripan (Cosine Similarity):
-      - Menggunakan cosine similarity dari `sklearn.metrics.pairwise` untuk mengukur kemiripan antar game berdasarkan genre.
-      - Hasilnya adalah matriks kemiripan antar semua game dalam data.
-      4. Pembuatan Fungsi Rekomendasi:
-      - Fungsi `games_recommendation()` mengambil nama game sebagai input.
-      - Fungsi akan mencari game lain yang memiliki skor cosine tertinggi terhadap input tersebut.
-      - Game dengan skor tertinggi (kecuali dirinya sendiri) akan dijadikan Top-N rekomendasi.
+   🔹 Alur kerja model:
+      [Data Game] 
+         ↓ 
+      [CountVectorizer]
+         ↓ 
+      [Vektor Genre] 
+         ↓ 
+      [Cosine Similarity] 
+         ↓ 
+      [Matriks Similarity]
+         ↓ 
+      [Input Game]
+         ↓ 
+      [Ambil Skor Similaritas]
+         ↓ 
+      [Urutkan dan Filter]
+         ↓ 
+      [Top-N Rekomendasi]
 
-   🔹 Kelebihan:
-   - Rekomendasi sangat relevan dengan preferensi pengguna.
-   - Cocok untuk pengguna dengan riwayat atau referensi awal.
+      Jadi, sistem rekomendasi yang dibangun menggunakan pendekatan content-based ini bekerja dengan memanfaatkan data genre dari setiap game. Pertama, data game yang berisi nama dan genre diproses menggunakan `CountVectorizer`, yang berfungsi mengubah informasi genre menjadi bentuk vektor numerik. Proses ini dilakukan dengan memisahkan genre menggunakan simbol `|`, sehingga setiap game diwakili oleh vektor biner yang menunjukkan kehadiran atau ketidakhadiran suatu genre. Setelah semua game direpresentasikan dalam bentuk vektor, dihitunglah skor kesamaan antar game menggunakan **cosine similarity**, yang mengukur seberapa mirip dua vektor genre tersebut. Hasil dari proses ini adalah sebuah matriks kesamaan (similarity matrix) yang memperlihatkan tingkat kemiripan antar semua pasangan game.
 
-   🔹 Kelemahan:
-   - Tidak bisa memberikan saran jika game input tidak tersedia dalam data (cold start).
-   - Genre saja mungkin tidak cukup untuk menangkap kompleksitas preferensi pemain (misalnya tidak memperhitungkan rating, developer, atau review).
+      Selanjutnya, ketika pengguna memilih sebuah game sebagai input, sistem mengambil skor similarity antara game tersebut dengan semua game lainnya dari matriks tersebut. Game yang sama (input) akan dikeluarkan dari daftar, lalu sisa game diurutkan berdasarkan skor similarity tertinggi. Akhirnya, sistem menampilkan Top-N game dengan skor tertinggi sebagai rekomendasi yang paling relevan—karena secara genre, game-game tersebut dianggap paling mirip dengan game yang dipilih pengguna. Pendekatan ini sederhana namun efektif dalam menyarankan game yang relevan berdasarkan kesamaan kontennya.
+
+Hasil dari model diatas adalah sebagai berikut:
+
+|index|name|genre|similarity\_score|
+|---|---|---|---|
+|0|City Monsters|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|1|Xenochamber|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|2|Temple of Xiala|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|3|Millionaire Dancer|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|4|Tails|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|5|Charpi|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|6|Donut Distraction|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|7|Brainstorm Party|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|8|The Prison|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|9|Slide Ride Arcade|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|10|Trivia Night|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|11|IgKnight Food Fight|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|12|D\.A\.M\.A\.G\.E|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|13|Tet VR|Casual&#124;Indie&#124;EarlyAccess|1\.00|
+|14|Nature's Zombie Apocalypse|Action&#124;Casual&#124;Indie&#124;EarlyAccess|0\.87|
+|15|Space Challenge|Action&#124;Casual&#124;Indie&#124;EarlyAccess|0\.87|
+|16|Zether|Adventure&#124;Casual&#124;Indie&#124;EarlyAccess|0\.87|
+|17|Call Of Unity|Action&#124;Casual&#124;Indie&#124;EarlyAccess|0\.87|
+|18|MatchyGotchy Z|Casual&#124;Indie&#124;Simulation&#124;EarlyAccess|0\.87|
+|19|Sumo|Action&#124;Casual&#124;Indie&#124;EarlyAccess|0\.87|
 
 ### Model 2: Popularity-Based Recommendation
    🔹 Tujuan:
    Menyarankan game berdasarkan genre yang paling sering muncul dalam dataset — cocok untuk pengguna baru.
 
-   🔹 Mekanisme:
-   1. Menggabungkan Semua Genre:
-   -  Semua genre dari dataset digabung menjadi satu string, lalu dipisah berdasarkan `|`.
-   2. Menghitung Frekuensi Genre:
-   - Digunakan `Counter` dari Python untuk menghitung berapa kali setiap genre muncul.
-   3. Memilih Top-5 Genre Terpopuler:
-   - Kombinasi genre dengan kemunculan terbanyak dianggap paling populer.
-   4. Menyusun Rekomendasi:
-   - Game yang mengandung genre tersebut dipilih sebagai rekomendasi.
-   - Diambil Top-20 sebagai hasil final (Top-N Recommendation).
+   🔹 Alur kerja model:
 
-   🔹 Kelebihan:
-   - Tidak memerlukan input dari pengguna.
-   - Berguna saat data pengguna belum tersedia (cold start).
+      [Data Game]  
+         ↓  
+      [Gabungkan Semua Genre]  
+         ↓  
+      [Hitung Frekuensi]  
+         ↓  
+      [Top Genre Populer]  
+         ↓  
+      [Filter Game Berdasarkan Genre Populer]  
+         ↓  
+      [Hitung Banyaknya Genre Populer per Game]  
+         ↓  
+      [Urutkan & Ambil Top-N]  
+         ↓  
+      [Rekomendasi]
 
-   🔹 Kelemahan:
-   - Tidak personal — semua pengguna dapat rekomendasi yang sama.
-   - Kualitas rekomendasi tergantung tren umum, bukan preferensi individu.
+      Jadi, model kedua ini menggunakan pendekatan berbasis popularitas genre (popularity-based recommendation), yang bekerja tanpa memperhitungkan kesamaan antar game, melainkan mengandalkan informasi global tentang genre yang paling banyak muncul di seluruh dataset. Pertama-tama, seluruh genre dari semua game digabung menjadi satu string besar, kemudian dipisah berdasarkan simbol | untuk membentuk daftar semua genre yang pernah muncul. Dengan bantuan Counter, dihitunglah frekuensi kemunculan tiap genre, dan dipilih lima genre teratas yang paling sering muncul sebagai genre paling populer.
+
+      Setelah genre-genre populer diketahui, model kemudian menyaring game-game yang mengandung setidaknya satu dari genre populer tersebut. Namun, tidak berhenti sampai di situ—setiap game kemudian dianalisis untuk melihat seberapa banyak genre populernya yang terkandung dalam game tersebut. Ini dilakukan dengan menghitung irisan antara genre game dan genre populer. Semakin banyak genre populer yang dimiliki sebuah game, semakin besar kemungkinan game itu relevan bagi banyak pengguna.
+
+      Akhirnya, game-game tersebut diurutkan berdasarkan jumlah genre populer yang cocok (matched), dan dipilih Top-N game teratas untuk ditampilkan sebagai rekomendasi. Model ini sangat berguna untuk pengguna baru (cold start), atau ketika preferensi pengguna belum diketahui, karena menyarankan game-game yang secara umum disukai oleh banyak orang.
+
+Hasil dari model diatas adalah sebagai berikut:
+
+|index|name|genre|matched\_popular\_genres|
+|---|---|---|---|
+|1151|Myarcadegames Super Bundle|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Simulation&#124;Sports&#124;Strategy&#124;Violent&#124;MassivelyMultiplayer&#124;RPG|5|
+|9461|Depth Hunter 2: Treasure Hunter|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Simulation&#124;Sports|5|
+|1243|Mega Boogygames Bundle|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Strategy&#124;Simulation&#124;Sports&#124;EarlyAccess|5|
+|1280|IDALGAME Bundle COMPLETE|Action&#124;Adventure&#124;Indie&#124;MassivelyMultiplayer&#124;Simulation&#124;AudioProduction&#124;EarlyAccess&#124;Casual&#124;Education&#124;SoftwareTraining&#124;GameDevelopment|5|
+|9402|Bound Up & Squirming\!|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Simulation|5|
+|1410|The Murder Room VR|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Simulation|5|
+|1430|Armored Battle Crew - Supporter Pack|Action&#124;Adventure&#124;Casual&#124;Indie&#124;Simulation&#124;Strategy|5|
+|1425|Apollo4x|Action&#124;Adventure&#124;Casual&#124;Indie&#124;RPG&#124;Simulation&#124;Strategy|5|
+|1471|ALL Games Narko Games|Violent&#124;Gore&#124;Action&#124;Adventure&#124;Indie&#124;Casual&#124;Racing&#124;Sports&#124;RPG&#124;Simulation&#124;Strategy&#124;EarlyAccess|5|
+|1587|Naturallandscape - GuilinLandscape \(自然景观系列-桂林山水\)|Action&#124;Adventure&#124;Casual&#124;FreetoPlay&#124;Indie&#124;Racing&#124;RPG&#124;Simulation&#124;Sports|5|
 
 ## Evaluation
 
@@ -179,16 +269,16 @@ Setiap model akan menghasilkan output berupa Top-N Recommendation, yaitu daftar 
    #### 🔹 Model 1: Content-Based Filtering
    - Input game: Ninja Way
    - Output rekomendasi:
-   Game-game yang direkomendasikan seluruhnya memiliki genre serupa (Casual/Indie).
-   - Precision@10: `1.00`
+   Game-game yang direkomendasikan seluruhnya memiliki genre serupa.
+   - ![Precision@10: `1.00`](img/presition.png)
    ##### Kesimpulan
    Artinya semua hasil rekomendasi cocok secara genre — model berhasil memberikan rekomendasi yang sangat relevan.
 
    #### 🔹 Model 2: Popularity-Based Recommendation
    - Rekomendasi didasarkan pada game dengan genre populer di dataset.
-   - Precision@10: `0.80`
+   - ![Precision@10: `1.00`](img/precition2.png)
    ##### Kesimpulan
-   Model ini masih menghasilkan rekomendasi yang cukup relevan, meskipun tidak sepenuhnya personal.
+   Artinya semua hasil rekomendasi cocok secara genre — model berhasil memberikan rekomendasi yang sangat relevan.
 
 ### Kesimpulan Umum
 Dalam proyek ini, telah dibangun dua sistem rekomendasi game berbasis genre menggunakan data dari platform seperti Steam, untuk menjawab permasalahan utama: overload informasi, keterbatasan data interaksi pengguna, dan kurangnya personalisasi rekomendasi.
@@ -196,7 +286,7 @@ Dalam proyek ini, telah dibangun dua sistem rekomendasi game berbasis genre meng
 #### 🎯 Poin-poin utama:
    1. Content-Based Filtering berhasil memberikan rekomendasi yang sangat relevan berdasarkan genre dari game referensi pengguna. Dengan Precision@10 sebesar 1.00, sistem ini menunjukkan bahwa seluruh hasil rekomendasi memiliki kemiripan fitur yang kuat.
 
-   2. Popularity-Based Recommendation memberikan alternatif solusi yang sederhana dan efektif untuk kasus cold-start (misalnya pengguna baru yang belum memiliki preferensi). Meskipun tidak sepersonal model pertama, model ini tetap mencatat Precision@10 sebesar 0.80, menandakan bahwa mayoritas rekomendasi masih relevan secara umum.
+   2. Popularity-Based Recommendation memberikan alternatif solusi yang sederhana dan efektif untuk kasus cold-start (misalnya pengguna baru yang belum memiliki preferensi). Dengan Precision@10 sebesar 1.00, sistem ini menunjukkan bahwa seluruh hasil rekomendasi memiliki kemiripan fitur yang kuat.
 
    3. Kedua pendekatan memberikan kontribusi yang komplementer:
    - Model content-based cocok untuk pengguna aktif dengan preferensi awal.
@@ -209,8 +299,3 @@ Dalam proyek ini, telah dibangun dua sistem rekomendasi game berbasis genre meng
 
 Dengan hasil ini, sistem rekomendasi yang dikembangkan dapat menjadi fondasi awal bagi pengembangan rekomendasi hybrid yang menggabungkan konten, popularitas, dan interaksi pengguna untuk menciptakan pengalaman personal yang lebih optimal.
 **---Ini adalah bagian akhir laporan---**
-
-_Catatan:_
-
-- _Anda dapat menambahkan gambar, kode, atau tabel ke dalam laporan jika diperlukan. Temukan caranya pada contoh dokumen markdown di situs editor [Dillinger](https://dillinger.io/), [Github Guides: Mastering markdown](https://guides.github.com/features/mastering-markdown/), atau sumber lain di internet. Semangat!_
-- Jika terdapat penjelasan yang harus menyertakan code snippet, tuliskan dengan sewajarnya. Tidak perlu menuliskan keseluruhan kode project, cukup bagian yang ingin dijelaskan saja.
