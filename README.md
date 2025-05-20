@@ -161,6 +161,7 @@ Setiap model akan menghasilkan output berupa Top-N Recommendation, yaitu daftar 
       Merekomendasikan game yang memiliki genre mirip dengan game yang dipilih pengguna.
 
    🔹 Alur kerja model:
+   
       [Data Game] 
          ↓ 
       [CountVectorizer]
